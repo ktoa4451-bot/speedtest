@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SpeedTest — тест скорости интернета</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>⚡ SpeedTest</h1>
+      <p class="subtitle">Измерьте скорость вашего подключения</p>
+    </header>
+
+    <div class="speedometer">
+      <svg viewBox="0 0 200 120" class="gauge-svg">
+        <path class="gauge-bg" d="M 20 100 A 80 80 0 0 1 180 100" />
+        <path class="gauge-fill" id="gaugeFill"
+              d="M 20 100 A 80 80 0 0 1 180 100"
+              stroke-dasharray="251.2"
+              stroke-dashoffset="251.2" />
+      </svg>
+      <div class="gauge-value">
+        <span id="gaugeNumber">0</span>
+        <span class="unit">Мбит/с</span>
+      </div>
+    </div>
+
+    <div class="results">
+      <div class="result-card">
+        <div class="icon">📡</div>
+        <div class="result-value" id="pingValue">—</div>
+        <div class="result-label">Ping (мс)</div>
+      </div>
+      <div class="result-card">
+        <div class="icon">⬇️</div>
+        <div class="result-value" id="downloadValue">—</div>
+        <div class="result-label">Download (Мбит/с)</div>
+      </div>
+      <div class="result-card">
+        <div class="icon">⬆️</div>
+        <div class="result-value" id="uploadValue">—</div>
+        <div class="result-label">Upload (Мбит/с)</div>
+      </div>
+    </div>
+
+    <button id="startBtn" class="start-btn">Начать тест</button>
+    <div class="status" id="status">Нажмите кнопку для начала</div>
+
+    <footer>
+      <p>Сервер: Cloudflare · Замеры в реальном времени</p>
+    </footer>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
