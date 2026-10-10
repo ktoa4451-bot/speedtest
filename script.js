@@ -3,10 +3,12 @@ const CONFIG = {
   pingUrl: 'https://speed.cloudflare.com/__down?bytes=0',
   downloadUrl: 'https://speed.cloudflare.com/__down?bytes=',
   uploadUrl: 'https://speed.cloudflare.com/__up',
-  downloadSizeMB: 25,
-  uploadSizeMB: 10,
+  downloadSizeMB: 100,        // ← было 25, теперь 100
+  uploadSizeMB: 25,           // ← было 10, теперь 25
   pingRounds: 8,
-  maxGaugeMbps: 200
+  maxGaugeMbps: 200,
+  minTestDuration: 1500,      // минимум 1.5 сек анимации, даже если быстрее
+  uiUpdateInterval: 60        // обновление UI каждые 60 мс (плавнее)
 };
 
 // ============ DOM ============
@@ -28,18 +30,41 @@ const clearHistoryBtn = document.getElementById('clearHistory');
 const GAUGE_LENGTH = 251.2;
 const HISTORY_KEY = 'speedtest_history';
 
-// ============ УТИЛИТЫ ============
+// ============ ПЛАВНАЯ АНИМАЦИЯ ЦИФРЫ ============
+let displayedValue = 0;   // что показывает спидометр СЕЙЧАС
+let targetValue = 0;      // куда он должен стремиться
+let animationFrame = null;
+
+function animateGauge() {
+  const diff = targetValue - displayedValue;
+  if (Math.abs(diff) < 0.05) {
+    displayedValue = targetValue;
+    applyGauge(displayedValue);
+    animationFrame = null;
+    return;
+  }
+  // плавное «догоняние» — 15% за кадр
+  displayedValue += diff * 0.15;
+  applyGauge(displayedValue);
+  animationFrame = requestAnimationFrame(animateGauge);
+}
+
 function setGauge(mbps) {
+  targetValue = mbps;
+  if (!animationFrame) {
+    animationFrame = requestAnimationFrame(animateGauge);
+  }
+}
+
+function applyGauge(mbps) {
   const percent = Math.min(mbps / CONFIG.maxGaugeMbps, 1);
   const offset = GAUGE_LENGTH * (1 - percent);
   gaugeFill.style.strokeDashoffset = offset;
   gaugeNumber.textContent = mbps.toFixed(1);
 
-  // Стрелка: от -90° до +90°
   const angle = -90 + percent * 180;
   needle.style.transform = `translateX(-50%) rotate(${angle}deg)`;
 
-  // Цвет
   let color = '#ef4444';
   if (mbps >= 100) color = '#22c55e';
   else if (mbps >= 50) color = '#84cc16';
@@ -51,6 +76,7 @@ function setGauge(mbps) {
   needle.style.background = `linear-gradient(to top, ${color}, transparent)`;
 }
 
+// ============ УТИЛИТЫ ============
 function setStatus(text, color = '#94a3b8') {
   statusEl.textContent = text;
   statusEl.style.color = color;
@@ -72,7 +98,9 @@ function resetUI() {
   downloadValue.textContent = '—';
   uploadValue.textContent = '—';
   jitterValue.textContent = '';
-  setGauge(0);
+  displayedValue = 0;
+  targetValue = 0;
+  applyGauge(0);
 }
 
 function formatTime(ts) {
@@ -98,14 +126,9 @@ async function measurePing() {
 
   if (times.length === 0) throw new Error('Не удалось измерить ping');
 
-  // Медиана для ping
   const sorted = [...times].sort((a, b) => a - b);
   const median = sorted[Math.floor(sorted.length / 2)];
-
-  // Jitter — среднее отклонение от медианы
   const jitter = times.reduce((sum, t) => sum + Math.abs(t - median), 0) / times.length;
-
-  // Потери пакетов
   const loss = ((CONFIG.pingRounds - times.length) / CONFIG.pingRounds * 100).toFixed(0);
 
   pingValue.textContent = median.toFixed(0);
@@ -115,38 +138,53 @@ async function measurePing() {
   return { ping: median, jitter, loss: parseInt(loss) };
 }
 
-// ============ DOWNLOAD ============
+// ============ DOWNLOAD (РАЗБИТ НА ЧАСТИ) ============
 async function measureDownload() {
   setStatus('⬇️ Тестируем скачивание...');
   highlightCard('cardDownload', true);
 
-  const url = CONFIG.downloadUrl + (CONFIG.downloadSizeMB * 1024 * 1024) + '&r=' + Math.random();
-  const t0 = performance.now();
+  const totalMB = CONFIG.downloadSizeMB;
+  const partsCount = 5;                        // 5 частей по 20 МБ = 100 МБ
+  const partMB = totalMB / partsCount;
+  const partBytes = partMB * 1024 * 1024;
+  const partUrl = CONFIG.downloadUrl + partBytes;
 
-  const response = await fetch(url, { cache: 'no-store' });
-  const reader = response.body.getReader();
-  let received = 0;
+  let totalReceived = 0;
+  const t0 = performance.now();
   let lastUpdate = t0;
 
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    received += value.length;
+  for (let part = 0; part < partsCount; part++) {
+    // уникальный URL для каждой части → никакого кэша
+    const url = `${partUrl}&r=${Math.random()}-${Date.now()}-${part}`;
+    const response = await fetch(url, {
+      cache: 'no-store',
+      headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
+    });
 
-    const now = performance.now();
-    if (now - lastUpdate > 100) {
-      const elapsed = (now - t0) / 1000;
-      const mbps = (received * 8) / (elapsed * 1_000_000);
-      setGauge(mbps);
-      downloadValue.textContent = mbps.toFixed(1);
-      lastUpdate = now;
+    const reader = response.body.getReader();
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      totalReceived += value.length;
+
+      const now = performance.now();
+      if (now - lastUpdate >= CONFIG.uiUpdateInterval) {
+        const elapsed = (now - t0) / 1000;
+        const mbps = (totalReceived * 8) / (elapsed * 1_000_000);
+        setGauge(mbps);
+        downloadValue.textContent = mbps.toFixed(1);
+        lastUpdate = now;
+      }
     }
   }
 
+  // финальная цифра — стабильная скорость за весь тест
   const elapsed = (performance.now() - t0) / 1000;
-  const mbps = (received * 8) / (elapsed * 1_000_000);
+  const mbps = (totalReceived * 8) / (elapsed * 1_000_000);
   setGauge(mbps);
   downloadValue.textContent = mbps.toFixed(1);
+
   highlightCard('cardDownload', false);
   return mbps;
 }
@@ -171,8 +209,8 @@ async function measureUpload() {
 
   const elapsed = (performance.now() - t0) / 1000;
   const mbps = (sizeBytes * 8) / (elapsed * 1_000_000);
-  uploadValue.textContent = mbps.toFixed(1);
   setGauge(mbps);
+  uploadValue.textContent = mbps.toFixed(1);
   highlightCard('cardUpload', false);
   return mbps;
 }
@@ -189,7 +227,6 @@ function loadHistory() {
 function saveHistory(item) {
   const history = loadHistory();
   history.unshift(item);
-  // храним последние 10
   localStorage.setItem(HISTORY_KEY, JSON.stringify(history.slice(0, 10)));
   renderHistory();
 }
@@ -224,21 +261,27 @@ async function runTest() {
   setActive(true);
   resetUI();
 
+  const testStartTime = performance.now();
+
   try {
+    await fetch(CONFIG.pingUrl).catch(() => {});
+
     const { ping, jitter, loss } = await measurePing();
     const download = await measureDownload();
     const upload = await measureUpload();
+
+    // гарантируем минимальное время анимации, чтобы тест не «мигнул»
+    const elapsed = performance.now() - testStartTime;
+    if (elapsed < CONFIG.minTestDuration) {
+      await new Promise(r => setTimeout(r, CONFIG.minTestDuration - elapsed));
+    }
 
     setStatus(
       `✅ Готово! Ping ${ping.toFixed(0)} мс · ↓ ${download.toFixed(1)} · ↑ ${upload.toFixed(1)} Мбит/с`,
       '#22c55e'
     );
 
-    // сохраняем в историю
-    saveHistory({
-      time: Date.now(),
-      ping, jitter, loss, download, upload
-    });
+    saveHistory({ time: Date.now(), ping, jitter, loss, download, upload });
   } catch (err) {
     console.error(err);
     setStatus('❌ Ошибка: ' + err.message, '#ef4444');
@@ -252,4 +295,4 @@ async function runTest() {
 // ============ ИНИЦИАЛИЗАЦИЯ ============
 startBtn.addEventListener('click', runTest);
 renderHistory();
-setGauge(0);
+applyGauge(0);
