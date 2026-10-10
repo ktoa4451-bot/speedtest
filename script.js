@@ -1,8 +1,8 @@
 // ============ КОНФИГ ============
 const CONFIG = {
-  pingUrl: 'https://httpbin.org/delay/0',
-  downloadUrl: 'https://httpbin.org/stream-bytes/',
-  uploadUrl: 'https://httpbin.org/post',
+  pingUrl: 'https://httpbingo.org/delay/0',
+  downloadUrl: 'https://httpbingo.org/stream-bytes/',
+  uploadUrl: 'https://httpbingo.org/post',
   downloadSizeMB: 10,
   uploadSizeMB: 2,
   pingRounds: 8,
