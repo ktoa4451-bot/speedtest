@@ -3,6 +3,8 @@ const CONFIG = {
   pingUrl: 'https://httpbingo.org/delay/0',
   downloadUrl: 'https://httpbingo.org/stream-bytes/',
   uploadUrl: 'https://httpbingo.org/post',
+  // ... остальное без изменений
+};
   downloadSizeMB: 10,
   uploadSizeMB: 2,
   pingRounds: 8,
