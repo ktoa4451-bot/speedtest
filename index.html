@@ -13,14 +13,33 @@
       <p class="subtitle">Измерьте скорость вашего подключения</p>
     </header>
 
-    <div class="speedometer">
+    <!-- Спидометр с анимацией -->
+    <div class="speedometer" id="speedometer">
+      <!-- Вращающееся кольцо загрузки -->
+      <div class="loading-ring" id="loadingRing"></div>
+
+      <!-- Пульсирующие волны -->
+      <div class="pulse-wave pulse-1"></div>
+      <div class="pulse-wave pulse-2"></div>
+      <div class="pulse-wave pulse-3"></div>
+
       <svg viewBox="0 0 200 120" class="gauge-svg">
+        <defs>
+          <linearGradient id="gaugeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#38bdf8"/>
+            <stop offset="100%" stop-color="#a78bfa"/>
+          </linearGradient>
+        </defs>
         <path class="gauge-bg" d="M 20 100 A 80 80 0 0 1 180 100" />
         <path class="gauge-fill" id="gaugeFill"
               d="M 20 100 A 80 80 0 0 1 180 100"
               stroke-dasharray="251.2"
               stroke-dashoffset="251.2" />
       </svg>
+
+      <!-- Стрелка -->
+      <div class="needle" id="needle"></div>
+
       <div class="gauge-value">
         <span id="gaugeNumber">0</span>
         <span class="unit">Мбит/с</span>
@@ -28,25 +47,38 @@
     </div>
 
     <div class="results">
-      <div class="result-card">
+      <div class="result-card" id="cardPing">
         <div class="icon">📡</div>
         <div class="result-value" id="pingValue">—</div>
         <div class="result-label">Ping (мс)</div>
+        <div class="mini-stat" id="jitterValue"></div>
       </div>
-      <div class="result-card">
+      <div class="result-card" id="cardDownload">
         <div class="icon">⬇️</div>
         <div class="result-value" id="downloadValue">—</div>
         <div class="result-label">Download (Мбит/с)</div>
       </div>
-      <div class="result-card">
+      <div class="result-card" id="cardUpload">
         <div class="icon">⬆️</div>
         <div class="result-value" id="uploadValue">—</div>
         <div class="result-label">Upload (Мбит/с)</div>
       </div>
     </div>
 
-    <button id="startBtn" class="start-btn">Начать тест</button>
+    <button id="startBtn" class="start-btn">
+      <span class="btn-text">Начать тест</span>
+      <span class="btn-spinner" id="btnSpinner"></span>
+    </button>
     <div class="status" id="status">Нажмите кнопку для начала</div>
+
+    <!-- История тестов -->
+    <div class="history" id="historyBlock" style="display:none;">
+      <div class="history-header">
+        <h3>📊 История тестов</h3>
+        <button class="clear-btn" id="clearHistory">Очистить</button>
+      </div>
+      <div class="history-list" id="historyList"></div>
+    </div>
 
     <footer>
       <p>Сервер: Cloudflare · Замеры в реальном времени</p>
