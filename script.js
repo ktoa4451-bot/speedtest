@@ -1,14 +1,14 @@
 // ============ КОНФИГ ============
 const CONFIG = {
-  pingUrl: 'https://speed.cloudflare.com/__down?bytes=0',
-  downloadUrl: 'https://speed.cloudflare.com/__down?bytes=',
-  uploadUrl: 'https://speed.cloudflare.com/__up',
-  downloadSizeMB: 100,        // ← было 25, теперь 100
-  uploadSizeMB: 25,           // ← было 10, теперь 25
+  pingUrl: 'https://httpbin.org/delay/0',
+  downloadUrl: 'https://httpbin.org/stream-bytes/',
+  uploadUrl: 'https://httpbin.org/post',
+  downloadSizeMB: 10,        // ← уменьшили: httpbin не тянет 100 МБ
+  uploadSizeMB: 2,           // ← уменьшили: httpbin ограничивает POST
   pingRounds: 8,
   maxGaugeMbps: 200,
-  minTestDuration: 1500,      // минимум 1.5 сек анимации, даже если быстрее
-  uiUpdateInterval: 60        // обновление UI каждые 60 мс (плавнее)
+  minTestDuration: 1500,
+  uiUpdateInterval: 60
 };
 
 // ============ DOM ============
