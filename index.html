@@ -3,22 +3,25 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SpeedTest — тест скорости интернета</title>
+  <title>SpeedTest — проверка скорости интернета</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="container">
+  <!-- Фоновые декоративные пятна -->
+  <div class="bg-blob blob-1"></div>
+  <div class="bg-blob blob-2"></div>
+  <div class="bg-blob blob-3"></div>
+
+  <main class="container">
     <header>
-      <h1>⚡ SpeedTest</h1>
-      <p class="subtitle">Измерьте скорость вашего подключения</p>
+      <div class="logo">⚡</div>
+      <h1>SpeedTest</h1>
+      <p class="subtitle">Проверьте скорость вашего подключения</p>
     </header>
 
-    <!-- Спидометр с анимацией -->
+    <!-- Спидометр -->
     <div class="speedometer" id="speedometer">
-      <!-- Вращающееся кольцо загрузки -->
       <div class="loading-ring" id="loadingRing"></div>
-
-      <!-- Пульсирующие волны -->
       <div class="pulse-wave pulse-1"></div>
       <div class="pulse-wave pulse-2"></div>
       <div class="pulse-wave pulse-3"></div>
@@ -37,15 +40,18 @@
               stroke-dashoffset="251.2" />
       </svg>
 
-      <!-- Стрелка -->
       <div class="needle" id="needle"></div>
 
       <div class="gauge-value">
         <span id="gaugeNumber">0</span>
         <span class="unit">Мбит/с</span>
       </div>
+
+      <!-- Индикатор этапа в центре -->
+      <div class="stage-label" id="stageLabel"></div>
     </div>
 
+    <!-- Результаты -->
     <div class="results">
       <div class="result-card" id="cardPing">
         <div class="icon">📡</div>
@@ -65,13 +71,26 @@
       </div>
     </div>
 
+    <!-- Кнопка -->
     <button id="startBtn" class="start-btn">
-      <span class="btn-text">Начать тест</span>
+      <span class="btn-text" id="btnText">Начать тест</span>
       <span class="btn-spinner" id="btnSpinner"></span>
     </button>
-    <div class="status" id="status">Нажмите кнопку для начала</div>
 
-    <!-- История тестов -->
+    <div class="status" id="status">Нажмите кнопку, чтобы начать</div>
+
+    <!-- Дисклеймер -->
+    <div class="disclaimer">
+      <div class="disclaimer-icon">ℹ️</div>
+      <div class="disclaimer-text">
+        <strong>Результаты приблизительны.</strong>
+        Показатели зависят от загрузки сервера, расстояния до него, Wi-Fi, фоновых программ
+        и других факторов. Для точных замеров используйте официальные приложения провайдера
+        или <a href="https://speedtest.net" target="_blank" rel="noopener">Speedtest.net</a>.
+      </div>
+    </div>
+
+    <!-- История -->
     <div class="history" id="historyBlock" style="display:none;">
       <div class="history-header">
         <h3>📊 История тестов</h3>
@@ -81,9 +100,9 @@
     </div>
 
     <footer>
-      <p>Сервер: Cloudflare · Замеры в реальном времени</p>
+      <p>Замеры проводятся через публичные серверы Cloudflare</p>
     </footer>
-  </div>
+  </main>
 
   <script src="script.js"></script>
 </body>
