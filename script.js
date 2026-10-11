@@ -1,10 +1,9 @@
-// ============ КОНФИГ ============
 const CONFIG = {
-  pingUrl: 'https://httpbingo.org/delay/0',
-  downloadUrl: 'https://httpbingo.org/stream-bytes/',
-  uploadUrl: 'https://httpbingo.org/post',
-  // ... остальное без изменений
-};
+  // Используем публичный прокси для обхода CORS
+  pingUrl: 'https://corsproxy.io/?' + encodeURIComponent('https://httpbin.org/delay/0'),
+  downloadUrl: 'https://corsproxy.io/?' + encodeURIComponent('https://httpbin.org/stream-bytes/'),
+  uploadUrl: 'https://corsproxy.io/?' + encodeURIComponent('https://httpbin.org/post'),
+  // Остальные настройки оставляем
   downloadSizeMB: 10,
   uploadSizeMB: 2,
   pingRounds: 8,
@@ -12,7 +11,6 @@ const CONFIG = {
   minTestDuration: 1500,
   uiUpdateInterval: 60
 };
-
 // ============ DOM ============
 const startBtn       = document.getElementById('startBtn');
 const btnText        = document.getElementById('btnText');
